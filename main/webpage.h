@@ -276,7 +276,11 @@ const char PAGE_MAIN[] = R"=====(
     </div>
     <br>
     <div class="bodytext">Switch</div>
-    <button type="button" class = "btn" id = "send_wifi" onclick="Update_WIFI()">Toggle</button>
+    <button type="button" class = "btn" id = "send_wifi" onclick="Update_WIFI()">Update WIFI</button>
+    </div>
+    <br>
+    <br>
+    <button type="button" class = "btn" id = "enter_MQTT" onclick="enter_MQTT()">enter MQTT</button>
     </div>
     <br>
     <br>

@@ -29,11 +29,13 @@
 int Xaccel = 0;
 int Yaccel = 0;
 int Zaccel = 0;
+int wakeup_time_sec = 30;
 double float_angle = 0;
 double roll_accel = 0;
 double temp_read = 0;
 double density = 1.2;
 float bat_volt = 0;
+RTC_DATA_ATTR bool mqtt_mode = false;
 
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
                                     int32_t event_id, void* event_data)
@@ -109,13 +111,25 @@ void app_main(void)
 
 
 
+
     while(1){
-        update_accel(accelo, &Xaccel, &Yaccel, &Zaccel, &temp_read);
-        bat_volt = measureBatt();
-        roll_accel = sqrt(Xaccel*Xaccel + Zaccel*Zaccel);
-        float_angle = asin(roll_accel/(sqrt(Yaccel*Yaccel + Xaccel*Xaccel + Zaccel*Zaccel))) * (180/M_PI);
-        printf("X val:  %d Y val: %d Z val: %d temp %f angle %f  bat_voltage: %f \n", Xaccel, Yaccel, Zaccel, temp_read, float_angle, bat_volt);
-        vTaskDelay(100/portTICK_PERIOD_MS);
+        if(mqtt_mode == false){
+            update_accel(accelo, &Xaccel, &Yaccel, &Zaccel, &temp_read);
+            bat_volt = measureBatt();
+            roll_accel = sqrt(Xaccel*Xaccel + Zaccel*Zaccel);
+            float_angle = asin(roll_accel/(sqrt(Yaccel*Yaccel + Xaccel*Xaccel + Zaccel*Zaccel))) * (180/M_PI);
+            printf("X val:  %d Y val: %d Z val: %d temp %f angle %f  bat_voltage: %f \n", Xaccel, Yaccel, Zaccel, temp_read, float_angle, bat_volt);
+            vTaskDelay(100/portTICK_PERIOD_MS);
+        }
+        else{
+            ESP_ERROR_CHECK(esp_sleep_enable_timer_wakeup(wakeup_time_sec * 1000000));            
+            update_accel(accelo, &Xaccel, &Yaccel, &Zaccel, &temp_read);
+            bat_volt = measureBatt();
+            float_angle = asin(roll_accel/(sqrt(Yaccel*Yaccel + Xaccel*Xaccel + Zaccel*Zaccel))) * (180/M_PI);
+            // send_MQTT();
+            esp_deep_sleep_start();
+
+        }
     }
     
 }
