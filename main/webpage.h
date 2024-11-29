@@ -262,7 +262,7 @@ const char PAGE_MAIN[] = R"=====(
     <div class="category">Sensor Controls</div>
     <br>
     <input type="text" id="x4" name="x4">
-    <label for="x1">x^4 + :</label>
+    <label for="x1">x^4 + </label>
     <input type="text" id="x3" name="x3">
     <label for="lname">x^3 + </label>
     <input type="text" id="x2" name="x2">
@@ -275,7 +275,10 @@ const char PAGE_MAIN[] = R"=====(
     
     </div>
     <br>
-    <div class="bodytext">Switch</div>
+    <input type="text" id="SSID" name="SSID">
+    <label for="SSID">WIFI SSID </label>
+    <input type="text" id="Password" name="Password">
+    <label for="Password">WIFI Password </label>
     <button type="button" class = "btn" id = "send_wifi" onclick="Update_WIFI()">Update WIFI</button>
     </div>
     <br>
@@ -306,9 +309,32 @@ const char PAGE_MAIN[] = R"=====(
       }
       return xmlHttp;
     }
+
+    function enter_MQTT(){
+    xhttp.open("PUT","enterMQTT", true);
+    xhttp.send();
+    }
+    
+    function Update_WIFI(){
+      var xhttp = new XMLHttpRequest(); 
+      var message;
+      var ssid = document.getElementById("SSID").value;
+      var pass = document.getElementById("Password").value;
+      // var packet = ("wifi?VALUE=${ssid} ");
+      xhttp.open("PUT","wifi?" + ssid + "?" + pass + "?", true);
+      xhttp.send();
+    }
+
     function Submit_Cal() {
       var xhttp = new XMLHttpRequest(); 
       var message;
+      var coef4 = document.getElementById("x4").value;
+      var coef3 = document.getElementById("x3").value;
+      var coef2 = document.getElementById("x2").value;
+      var coef1 = document.getElementById("x1").value;
+      var coefb = document.getElementById("b").value;
+      xhttp.open("PUT","coefs?" + coef4 + "?" + coef3 + "?"+ coef2 + "?" + coef1 + "?" + coefb, true);
+      xhttp.send();
       // if you want to handle an immediate reply (like status from the ESP
       // handling of the button press use this code
       // since this button status from the ESP is in the main XML code
@@ -323,9 +349,6 @@ const char PAGE_MAIN[] = R"=====(
         }
       }
       */
-       
-      xhttp.open("PUT", "BUTTON_0", false);
-      xhttp.send();
     }
 
     // function to handle the response from the ESP
@@ -371,7 +394,16 @@ const char PAGE_MAIN[] = R"=====(
       // you can set color dynamically, maybe blue below a value, red above
       document.getElementById("density").style.backgroundColor=color;
       //document.getElementById("density").style.borderRadius="5px";
+
+      xmldoc = xmlResponse.getElementsByTagName("tempr"); 
+      message = xmldoc[0].firstChild.nodeValue;
+      document.getElementById("tempr").innerHTML=message;
+      document.getElementById("tempr").style.width=(barwidth+"%");
+      // you can set color dynamically, maybe blue below a value, red above
+      document.getElementById("tempr").style.backgroundColor=color;
+      //document.getElementById("tempr").style.borderRadius="5px";
   
+
       // A1
       xmldoc = xmlResponse.getElementsByTagName("bat");
       message = xmldoc[0].firstChild.nodeValue;
@@ -387,12 +419,33 @@ const char PAGE_MAIN[] = R"=====(
       document.getElementById("bat").style.backgroundColor=color;
       //document.getElementById("bat").style.borderRadius="5px";
       
-      xmldoc = xmlResponse.getElementsByTagName("density");
+      xmldoc = xmlResponse.getElementsByTagName("ssid");
       message = xmldoc[0].firstChild.nodeValue;
-      document.getElementById("density").innerHTML=message;
-      document.getElementById("density").style.width=(width+"%");
-      document.getElementById("density").style.backgroundColor=color;
-      //document.getElementById("density").style.borderRadius="5px";
+      document.getElementById("SSID").placeholder=message;
+
+      xmldoc = xmlResponse.getElementsByTagName("wifi_password");
+      message = xmldoc[0].firstChild.nodeValue;
+      document.getElementById("Password").placeholder=message;
+
+      xmldoc = xmlResponse.getElementsByTagName("coef4");
+      message = xmldoc[0].firstChild.nodeValue;
+      document.getElementById("x4").placeholder=message;
+
+      xmldoc = xmlResponse.getElementsByTagName("coef3");
+      message = xmldoc[0].firstChild.nodeValue;
+      document.getElementById("x3").placeholder=message;
+
+      xmldoc = xmlResponse.getElementsByTagName("coef2");
+      message = xmldoc[0].firstChild.nodeValue;
+      document.getElementById("x2").placeholder=message;
+
+      xmldoc = xmlResponse.getElementsByTagName("coef1");
+      message = xmldoc[0].firstChild.nodeValue;
+      document.getElementById("x1").placeholder=message;
+
+      xmldoc = xmlResponse.getElementsByTagName("coefb");
+      message = xmldoc[0].firstChild.nodeValue;
+      document.getElementById("b").placeholder=message;
   
       xmldoc = xmlResponse.getElementsByTagName("LED");
       message = xmldoc[0].firstChild.nodeValue;

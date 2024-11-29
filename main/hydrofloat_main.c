@@ -17,24 +17,38 @@
 #include "string.h"
 #include "nvs_flash.h"
 #include "math.h"
-
+#include "esp_sleep.h"
 #include "accel.h"
 #include "webserver.h"
 #include "batt_read.h"
+#include "memory.h"
 
 
 // global variable definitions
 #define LOCAL_SSID "hydrofloat"
 #define LOCAL_PASS ""
-int Xaccel = 0;
-int Yaccel = 0;
-int Zaccel = 0;
+char ssid[50];
+char wifi_password[50];
+int16_t Xaccel = 0;
+int16_t Yaccel = 0;
+int16_t Zaccel = 0;
+double fx = 0;
+double fz = 0;
+double fy = 0;
 int wakeup_time_sec = 30;
 double float_angle = 0;
 double roll_accel = 0;
 double temp_read = 0;
 double density = 1.2;
+
+double coef1 = 0;
+double coef2 = 0;
+double coef3 = 0;
+double coef4 = 0;
+double coefb = 0;
+
 float bat_volt = 0;
+
 RTC_DATA_ATTR bool mqtt_mode = false;
 
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
@@ -93,6 +107,9 @@ void wifi_init_softap(void)
 
 }
 
+void send_mqtt(double bat_volt, double angle, double temp, double density){
+
+}
 
 void app_main(void)
 {
@@ -106,8 +123,17 @@ void app_main(void)
     i2c_master_dev_handle_t accelo;
     init_accel_i2c(&accelo);
     setup_accel(accelo);
-    wifi_init_softap();
-    start_webserver();
+    printf("calling start_littlefs function");
+    start_littlefs();
+    get_wifi_creds(ssid, wifi_password);
+    get_coefs(&coef1, &coef2, &coef3, &coef4, &coefb);
+    if (mqtt_mode ==false){
+        wifi_init_softap();
+        start_webserver();
+    } else{
+        ;
+    }
+    
 
 
 
@@ -116,12 +142,17 @@ void app_main(void)
         if(mqtt_mode == false){
             update_accel(accelo, &Xaccel, &Yaccel, &Zaccel, &temp_read);
             bat_volt = measureBatt();
-            roll_accel = sqrt(Xaccel*Xaccel + Zaccel*Zaccel);
-            float_angle = asin(roll_accel/(sqrt(Yaccel*Yaccel + Xaccel*Xaccel + Zaccel*Zaccel))) * (180/M_PI);
+            fx = Xaccel;
+            fz = Zaccel;
+            fy = Yaccel;
+            roll_accel = sqrt(fx*fx + fz*fz);
+            float_angle = asin(roll_accel/(sqrt(fy*fy + fx*fx + fz*fz))) * (180/M_PI);
             printf("X val:  %d Y val: %d Z val: %d temp %f angle %f  bat_voltage: %f \n", Xaccel, Yaccel, Zaccel, temp_read, float_angle, bat_volt);
             vTaskDelay(100/portTICK_PERIOD_MS);
         }
         else{
+            vTaskDelay(100/portTICK_PERIOD_MS);
+            printf("coming out of sleep.....");
             ESP_ERROR_CHECK(esp_sleep_enable_timer_wakeup(wakeup_time_sec * 1000000));            
             update_accel(accelo, &Xaccel, &Yaccel, &Zaccel, &temp_read);
             bat_volt = measureBatt();

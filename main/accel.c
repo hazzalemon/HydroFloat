@@ -23,20 +23,16 @@ void i2c_read_regs(i2c_master_dev_handle_t accelo, int address, int read_len, ui
 void update_accel(i2c_master_dev_handle_t accelo, int16_t* X, int16_t* Y, int16_t* Z, double* temp){
     uint8_t raw_vals[1];
     i2c_read_regs(accelo, 59, 2, raw_vals);
-    // printf("read: %u %u\n", raw_vals[0], raw_vals[1]);
     *X = (raw_vals[0] << 8) | raw_vals[1];
     i2c_read_regs(accelo, 61, 2, raw_vals);
-    // printf("read: %u %u\n", raw_vals[0], raw_vals[1]);
     *Y = (raw_vals[0] << 8) | raw_vals[1];
     i2c_read_regs(accelo, 63, 2, raw_vals);
-    // printf("read: %u %u\n", raw_vals[0], raw_vals[1]);
     *Z = (raw_vals[0] << 8) | raw_vals[1];
     i2c_read_regs(accelo, 65, 2, raw_vals);
-    // printf("read: %u %u\n", raw_vals[0], raw_vals[1]);
 
     int temp_temp;
     temp_temp = (raw_vals[0] << 8) | raw_vals[1];
-    *temp = (temp_temp/326.8)+25;
+    *temp = (temp_temp/326.8);
 
 
 }
