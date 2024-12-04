@@ -288,8 +288,21 @@ const char PAGE_MAIN[] = R"=====(
     <br>
     <br>
   </main>
+  <div id="OTA">
+    <h2>ESP32 Firmware Update</h2>
+      <label id="latest_firmware_label">Latest Firmware: </label>
+      <div id="latest_firmware"></div> 
+      <input type="file" id="selected_file" accept=".bin" style="display: none;" onchange="getFileInfo()" />
+      <div class="buttons">
+        <input type="button" value="Select File" onclick="document.getElementById('selected_file').click();" />
+        <input type="button" value="Update Firmware" onclick="updateFirmware()" />
+      </div>
+      <h4 id="file_info"></h4>
+      <h4 id="ota_update_status"></h4>
+    </div>
+    <hr>
 
-  <footer div class="foot" id = "temp" >Hydrofloat websever v1</div></footer>
+  <footer div class="foot" id = "temp" >Hydrofloat websever v1.69</div></footer>
   
   </body>
 
@@ -311,6 +324,7 @@ const char PAGE_MAIN[] = R"=====(
     }
 
     function enter_MQTT(){
+    var xhttp = new XMLHttpRequest(); 
     xhttp.open("PUT","enterMQTT", true);
     xhttp.send();
     }
@@ -466,7 +480,32 @@ const char PAGE_MAIN[] = R"=====(
         // a longer timeout
         setTimeout("process()",200);
     }
-  
+
+    function updateFirmware() 
+    {
+      // Form Data
+      var formData = new FormData();
+      var fileSelect = document.getElementById("selected_file");
+
+      if (fileSelect.files && fileSelect.files.length == 1) 
+      {
+        var file = fileSelect.files[0];
+        formData.set("file", file, file.name);
+        document.getElementById("ota_update_status").innerHTML = "Uploading " + file.name + ", Firmware Update in Progress...";
+
+        // Http Request
+        var request = new XMLHttpRequest();
+
+        // request.upload.addEventListener("progress", updateProgress);
+        request.open('POST', "/OTAupdate");
+        request.responseType = "blob";
+        request.send(formData);
+      }
+      else 
+      {
+        window.alert('Select A File First')
+      }
+    }
   
   </script>
 

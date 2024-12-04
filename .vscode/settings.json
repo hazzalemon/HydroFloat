@@ -21,7 +21,9 @@
         "esp_http_server.h": "c",
         "adc_cali.h": "c",
         "adc_cali_scheme.h": "c",
-        "adc_types.h": "c"
+        "adc_types.h": "c",
+        "mqtt.h": "c",
+        "task.h": "c"
     },
     "idf.port": "/dev/tty.usbmodem01",
     "idf.espIdfPath": "/Users/harrylenon/esp/v5.3.1/esp-idf",

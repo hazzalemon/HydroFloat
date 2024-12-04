@@ -10,6 +10,9 @@
 
 static esp_adc_cal_characteristics_t adc2_chars;
 
+int reading;
+
+
 // double measureBatt(){
 //     esp_adc_cal_characterize(ADC_UNIT_2, ADC_ATTEN_DB_12, ADC_WIDTH_BIT_DEFAULT, 0,&adc2_chars);
 //     adc2_config_channel_atten( ADC_CHANNEL_7, ADC_ATTEN_DB_12 );
@@ -25,35 +28,33 @@ static esp_adc_cal_characteristics_t adc2_chars;
 //     return (voltage/1000.0);
 //     }
 
-float measureBatt(){
-    int reading;
-    adc_oneshot_unit_handle_t adc2_handle;
+void setup_batt_measure(adc_oneshot_unit_handle_t *adc2_handle, adc_cali_handle_t *cal_handle){
     adc_oneshot_unit_init_cfg_t init_config = {
         .unit_id = ADC_UNIT_2,
         .ulp_mode = ADC_ULP_MODE_DISABLE,
     };
-    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config, &adc2_handle));
+    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config, adc2_handle));
     adc_oneshot_chan_cfg_t config = {
     .bitwidth = ADC_BITWIDTH_DEFAULT,
     .atten = ADC_ATTEN_DB_12,
     };
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc2_handle, ADC_CHANNEL_7, &config));
-    ESP_ERROR_CHECK(adc_oneshot_del_unit(adc2_handle));
     adc_cali_line_fitting_config_t cali_config = {
         .unit_id = ADC_UNIT_2,
         .atten = ADC_ATTEN_DB_12,
         .bitwidth = ADC_BITWIDTH_DEFAULT,
     };
-    adc_cali_handle_t cal_handle;
-    ESP_ERROR_CHECK(adc_cali_create_scheme_line_fitting(&cali_config, &cal_handle));
+    ESP_ERROR_CHECK(adc_cali_create_scheme_line_fitting(&cali_config, cal_handle));
+}
 
+float measureBatt(adc_oneshot_unit_handle_t adc_oneshot_handle, adc_cali_handle_t adc_cal_handle) {
     esp_err_t ret = ESP_FAIL;
     while(ret != ESP_OK){
-        ret = adc_oneshot_get_calibrated_result(adc2_handle, cal_handle, ADC_CHANNEL_7, &reading);
+        ret = adc_oneshot_get_calibrated_result(adc_oneshot_handle, adc_cal_handle, ADC_CHANNEL_7, &reading);
+
     }
     // printf("raw_reading: %i", reading);
     // printf("cal reading: %f", reading*2.0/1000.0);
 
     return (reading*2.0/1000.0);
 }
-    
